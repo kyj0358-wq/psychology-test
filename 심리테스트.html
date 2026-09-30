@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>심리테스트 모음</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+        }
+        body {
+            background-color: #2b5876;
+            background: linear-gradient(to right, #4e4376, #2b5876);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .card {
+            background: #ffffff;
+            width: 100%;
+            max-width: 500px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            padding: 30px 24px;
+            text-align: center;
+        }
+        .card-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        .progress {
+            font-size: 14px;
+            color: #777;
+            margin-bottom: 20px;
+        }
+        .question {
+            font-size: 17px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 24px;
+            line-height: 1.5;
+            word-break: keep-all;
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 12px;
+            border-left: 5px solid #4e4376;
+            text-align: left;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .btn-opt {
+            background: #ffffff;
+            border: 2px solid #e0e0e0;
+            padding: 14px 18px;
+            border-radius: 12px;
+            font-size: 15px;
+            color: #444;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            word-break: keep-all;
+        }
+        .btn-opt:hover {
+            border-color: #4e4376;
+            background-color: #f0eeff;
+            color: #4e4376;
+            font-weight: bold;
+        }
+        .result-area {
+            margin-top: 24px;
+            padding: 20px;
+            background: #eef9f1;
+            border: 2px solid #52c41a;
+            border-radius: 12px;
+            text-align: left;
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+        .result-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #276749;
+            margin-bottom: 8px;
+        }
+        .result-desc {
+            font-size: 15px;
+            color: #2d3748;
+            line-height: 1.6;
+            word-break: keep-all;
+        }
+        .nav-btns {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 24px;
+        }
+        .btn-nav {
+            background: #4e4376;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .btn-nav:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="card-title">✨ 심리테스트 모음</div>
+    <div class="progress" id="progress-text">1 / 10</div>
+    
+    <div class="question" id="q-text">질문 불러오는 중...</div>
+    
+    <div class="options" id="opt-container"></div>
+    
+    <div class="result-area" id="result-box">
+        <div class="result-title" id="res-title">선택한 결과</div>
+        <div class="result-desc" id="res-desc">내용</div>
+    </div>
+
+    <div class="nav-btns">
+        <button class="btn-nav" id="prev-btn" onclick="prevQuestion()">◀ 이전 질문</button>
+        <button class="btn-nav" id="next-btn" onclick="nextQuestion()">다음 질문 ▶</button>
+    </div>
+</div>
+
+<script>
+const tests = [
+    {
+        q: "Q1. 사막에서 길을 잃은 당신! 5마리의 동물과 사막을 건너고 있습니다. 생존을 위해 먼저 두고 갈 동물은? (내려놓는 가치관)",
+        opts: [
+            { text: "1. 사자", resTitle: "사자 = 자존심", resDesc: "어려운 상황에 닥쳤을 때 당신이 가장 먼저 내려놓는 것은 '자존심'입니다." },
+            { text: "2. 말", resTitle: "말 = 가족", resDesc: "어려운 상황에 닥쳤을 때 당신이 가장 먼저 내려놓는 것은 '가족'입니다." },
+            { text: "3. 소", resTitle: "소 = 일", resDesc: "어려운 상황에 닥쳤을 때 당신이 가장 먼저 내려놓는 것은 '일'입니다." },
+            { text: "4. 양", resTitle: "양 = 사랑", resDesc: "어려운 상황에 닥쳤을 때 당신이 가장 먼저 내려놓는 것은 '사랑'입니다." },
+            { text: "5. 원숭이", resTitle: "원숭이 = 친구", resDesc: "어려운 상황에 닥쳤을 때 당신이 가장 먼저 내려놓는 것은 '친구'입니다." }
+        ]
+    },
+    {
+        q: "Q2. 붕어빵 어디서부터 먹나요?",
+        opts: [
+            { text: "1. 머리", resTitle: "머리부터 먹는 당신", resDesc: "낙천적이고 개방적인 성격입니다. 남에게 지는 것을 싫어하고 하고 싶은 일은 꼭 해야 직성이 풀리며 이성에게 인기가 많습니다." },
+            { text: "2. 꼬리", resTitle: "꼬리부터 먹는 당신", resDesc: "신중하고 섬세하며 사려 깊은 성격입니다. 하지만 의외로 둔감한 면도 있습니다." },
+            { text: "3. 등지느러미", resTitle: "등지느러미부터 먹는 당신", resDesc: "상냥하고 차분하며 인정이 많은 성격입니다. 감수성이 풍부하고 눈물이 많으며 혼자 있는 것을 좋아합니다." },
+            { text: "4. 배", resTitle: "배부터 먹는 당신", resDesc: "매사에 적극적이고 활동적인 성격으로 인기가 많지만 귀가 얇은 게 특징입니다." }
+        ]
+    },
+    {
+        q: "Q3. 서커스단에서 공연 역할을 하나 고른다면?",
+        opts: [
+            { text: "1. 삐에로", resTitle: "삐에로", resDesc: "남의 부탁을 잘 거절하지 못하는 성격입니다. 친한 사람들 앞에서는 의견을 말하지만 사람이 많으면 그냥 따라가며 잘 상처받습니다." },
+            { text: "2. 외줄 타는 곡예사", resTitle: "외줄 타는 곡예사", resDesc: "본인 스스로 능력이 월등하지 않다고 생각합니다. 칭찬을 받으면 예의상 하는 말이라고 생각하곤 합니다." },
+            { text: "3. 사자 조련사", resTitle: "사자 조련사", resDesc: "시작은 기세등등하지만 마무리가 약하고 결정을 잘 못하는 성격입니다. 끈기가 부족해 일을 뒤로 미루곤 합니다." },
+            { text: "4. 마술사", resTitle: "마술사", resDesc: "좋고 싫음이 얼굴에 그대로 나타납니다. 직설적인 화법을 추구하며 듣는 것보다 본인의 이야기를 하는 것을 더 좋아합니다." }
+        ]
+    },
+    {
+        q: "Q4. 어떤 집이 가장 마음에 드나요?",
+        opts: [
+            { text: "1. 문이 두 개인 집", resTitle: "문이 두 개인 집", resDesc: "다른 사람과의 관계에서 너무 가까워지는 것을 불편해하며 혼자 있는 것을 좋아합니다." },
+            { text: "2. 창문이 많은 집", resTitle: "창문이 많은 집", resDesc: "타인과의 관계에 과도하게 집착하기도 합니다. 상대에게 다가가려는 욕구와 인정받고 싶은 욕구가 큽니다." },
+            { text: "3. 지붕이 큰 집", resTitle: "지붕이 큰 집", resDesc: "타인이나 세상에 대한 불안감이 있거나 자아가 강하고 자기만의 세계가 강한 경향이 있습니다." },
+            { text: "4. 굴뚝이 있는 집", resTitle: "굴뚝이 있는 집", resDesc: "가족 간의 관계를 중요시합니다. 연기에 눈길이 갔다면 애정 욕구가 강하거나 상실감/우울감을 뜻하기도 합니다." }
+        ]
+    },
+    {
+        q: "Q5. 시계를 볼 때 가장 좋아하는 바늘 위치는? (비밀을 지키는 정도)",
+        opts: [
+            { text: "1. 3시", resTitle: "3시 = 강철 입술", resDesc: "반드시 약속을 지키는 성격입니다. 고지식하다는 말을 듣기도 하지만 타인의 비밀을 절대 말하지 않습니다." },
+            { text: "2. 6시", resTitle: "6시 = 현실적 타협", resDesc: "계산이 빠르고 현실적입니다. 비밀을 잘 밝히진 않지만 손해를 볼 것 같거나 도덕적 문제가 있으면 공유하기도 합니다." },
+            { text: "3. 7시", resTitle: "7시 = 우유부단", resDesc: "누가 조르면 비밀을 가르쳐주는 경향이 있습니다. 사람을 잘 믿어 자신의 비밀도 거리낌 없이 말합니다." },
+            { text: "4. 12시", resTitle: "12시 = 완벽주의 스트레스", resDesc: "섬세하고 예민합니다. 약속 이행 강박이 있어 비밀을 아는 것만으로 스트레스를 받고 심하면 압박감에 발설하기도 합니다." }
+        ]
+    },
+    {
+        q: "Q6. 가장 좋아하는 치킨 부위는?",
+        opts: [
+            { text: "1. 다리", resTitle: "닭다리", resDesc: "솔직하고 확고한 성격입니다." },
+            { text: "2. 날개", resTitle: "닭날개", resDesc: "개성 있고 자존심이 강한 성격입니다." },
+            { text: "3. 가슴", resTitle: "닭가슴살", resDesc: "유머러스하고 에너지가 넘치는 성격입니다." },
+            { text: "4. 목", resTitle: "닭목", resDesc: "엉뚱한 면이 있으며 타인에 대한 배려심이 많은 성격입니다." }
+        ]
+    },
+    {
+        q: "Q7. 생선을 먹을 때 어느 부위를 먼저 먹나요? (소비 습관)",
+        opts: [
+            { text: "1. 머리", resTitle: "머리부터", resDesc: "돈을 계획적으로 모읍니다. 겉으로는 무관심해 보여도 속으로는 착실히 모아 편안한 노후를 계획합니다." },
+            { text: "2. 몸통", resTitle: "몸통부터", resDesc: "자기만족형 소비 타입입니다. 먹는 데 돈을 아끼지 않으며 불필요한 쇼핑을 할 때가 있어 주의가 필요합니다." },
+            { text: "3. 꼬리", resTitle: "꼬리부터", resDesc: "조심성이 많고 신중합니다. 쇼핑 시 여러 곳을 꼼꼼히 비교한 뒤 결정하며, 구두쇠 소리를 듣기도 합니다." },
+            { text: "4. 통통한 살 부위", resTitle: "살코기부터", resDesc: "월급날 전 이미 통장이 비어 있는 경우가 많습니다. 금전 관리 능력을 키우는 것이 좋습니다." }
+        ]
+    },
+    {
+        q: "Q8. 하얗고 폭신하지만 손으로 잡을 수 없는 것은? (스트레스 지수)",
+        opts: [
+            { text: "1. 무스", resTitle: "무스", resDesc: "스트레스가 없는 상태로 현재 생활과 환경에 매우 만족하고 있습니다." },
+            { text: "2. 구름", resTitle: "구름", resDesc: "스트레스가 많이 쌓인 상태이며 현실에 불만이 많습니다." },
+            { text: "3. 비누거품", resTitle: "비누거품", resDesc: "스트레스가 많지 않으며 약간의 불만은 있지만 충분히 견딜 수 있는 정도입니다." }
+        ]
+    },
+    {
+        q: "Q9. 숲 속에서 길을 잃었을 때 길을 물어볼 동물은? (결혼관)",
+        opts: [
+            { text: "1. 토끼", resTitle: "토끼 선택", resDesc: "안정적인 결혼 생활을 꿈꿉니다. 각자 맡은 역할에 최선을 다해야 한다고 생각합니다." },
+            { text: "2. 고양이", resTitle: "고양이 선택", resDesc: "서로의 사생활 존중을 중시합니다. 사소한 간섭은 피하지만 기념일은 특별하게 보내길 원합니다." },
+            { text: "3. 원숭이", resTitle: "원숭이 선택", resDesc: "결혼 후에도 독신 같은 자유를 원합니다. 개인적인 취미나 이성 친구와의 교류도 자연스럽게 여깁니다." },
+            { text: "4. 곰", resTitle: "곰 선택", resDesc: "여유롭고 편안한 환경 속에서 안락함을 추구하는 가정을 꿈꿉니다." }
+        ]
+    },
+    {
+        q: "Q10. 집 안에서 동시에 터진 상황, 무엇부터 해결할 것인가요? (인생의 우선순위)",
+        opts: [
+            { text: "1. 아기가 울기 시작함", resTitle: "아기 울음", resDesc: "인생에서 '사랑 / 애정'을 가장 중요하게 생각합니다." },
+            { text: "2. 화장실에 가고 싶음", resTitle: "화장실", resDesc: "인생에서 '자기 자신 / 본능'을 가장 중요하게 생각합니다." },
+            { text: "3. 전화가 울림", resTitle: "전화", resDesc: "인생에서 '일 / 비즈니스'를 가장 중요하게 생각합니다." },
+            { text: "4. 초인종이 울림", resTitle: "초인종", resDesc: "인생에서 '친구 / 인맥'을 가장 중요하게 생각합니다." },
+            { text: "5. 목욕물이 넘침", resTitle: "목욕물", resDesc: "인생에서 '돈 / 재산'을 가장 중요하게 생각합니다." }
+        ]
+    }
+];
+
+let currentIndex = 0;
+
+function renderQuestion() {
+    const cur = tests[currentIndex];
+    document.getElementById('progress-text').innerText = `${currentIndex + 1} / ${tests.length}`;
+    document.getElementById('q-text').innerText = cur.q;
+
+    const optBox = document.getElementById('opt-container');
+    optBox.innerHTML = '';
+
+    const resBox = document.getElementById('result-box');
+    resBox.style.display = 'none';
+
+    cur.opts.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'btn-opt';
+        btn.innerText = opt.text;
+        btn.onclick = () => showResult(opt.resTitle, opt.resDesc);
+        optBox.appendChild(btn);
+    });
+
+    document.getElementById('prev-btn').disabled = currentIndex === 0;
+    document.getElementById('next-btn').disabled = currentIndex === tests.length - 1;
+}
+
+function showResult(title, desc) {
+    const resBox = document.getElementById('result-box');
+    document.getElementById('res-title').innerText = "💡 " + title;
+    document.getElementById('res-desc').innerText = desc;
+    resBox.style.display = 'block';
+}
+
+function prevQuestion() {
+    if (currentIndex > 0) {
+        currentIndex--;
+        renderQuestion();
+    }
+}
+
+function nextQuestion() {
+    if (currentIndex < tests.length - 1) {
+        currentIndex++;
+        renderQuestion();
+    }
+}
+
+// 최초 실행
+renderQuestion();
+</script>
+
+</body>
+</html>
